@@ -1,0 +1,6 @@
+# Ignore macOS-specific .DS_Store files
+--ignore \\.DS_Store
+
+# Ignore Custom Setup Files
+--ignore Makefile
+--ignore macos_defaults
