@@ -1,0 +1,28 @@
+
+add tmux config
+
+add kitty config
+
+add nvim config
+
+---------------
+
+make ft anf fg consistnt inside and outside nvim/zsh
+
+make telescope ff and fg accept --hidden becuas ethey repspect gitignore
+
+-----
+
+zsh vim like
+
+tmux + kitty + zsh - ctrl based
+
+ctrl+tab - neovim next tab
+ctrl+shift+arrows - tmux next tab
+command+shift+[] - native macos terminal next tab
+
+ctrl+p +(shift?) - open tmux popup
+
+manage ctrl+shift+p + y and more of kitty
+
+kitty+tmux - shell - neovim

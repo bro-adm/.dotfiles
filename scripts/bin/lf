@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-
-file=$(fzf --tmux --style=full \
-  --preview 'fzf-preview.sh {}' --prompt="🔭 Find files>")
-
-[[ -n "$file" ]] && nvim "$file"

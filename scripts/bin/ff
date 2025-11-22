@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# TERM=xterm-kitty
+
+file=$(fzf --tmux=75%,70% --border \
+  --prompt="🔭 Find files> " \
+  --preview 'fzf-preview.sh {}' \
+  --preview-window=right:50%:wrap)
+  # --preview-window=hidden:wrap \
+  # --bind '?:toggle-preview' \
+  # --bind 'ctrl-space:toggle-preview')
+
+
+# file=$(fzf --tmux --style=full \
+  # --preview 'fzf-preview.sh {}' --prompt="🔭 Find files>")
+
+# [[ -n "$file" ]] && tmux send-keys "C-u" && tmux send-keys "nvim '$file'" Enter
+[[ -n "$file" ]] && nvim "$file"

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# FZF-based environment variable picker
+
+# Capture environment variables
+
+# Launch fzf to pick one
+env=$(env | fzf \
+    --ansi --reverse \
+    --tmux=75%,70% \
+    --border \
+    --prompt="🔎 Env> " \
+    --info=inline \
+    --color=fg+:cyan,bg+:black,header:yellow
+)
+
+# If something is selected, show it or process it
+if [[ -n "$env" ]]; then
+    # Optionally extract variable name and value
+    env_name=$(echo "$env" | cut -d= -f1)
+    env_value=$(echo "$env" | cut -d= -f2-)
+
+    echo "Env: $env_name"
+    echo "Value: $env_value"
+fi

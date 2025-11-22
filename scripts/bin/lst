@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# Collect ignore patterns if inside a git repo
+ignore_flags=()
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1 && [ -f ".gitignore" ]; then
+    while IFS= read -r pattern; do
+        [[ -z "$pattern" ]] && continue      # skip empty lines
+        [[ "$pattern" =~ ^# ]] && continue    # skip comments
+        ignore_flags+=("-I" "$pattern")        # add ignore flag
+    done < .gitignore
+fi
+
+# Run lsd with ignore flags and all other passed arguments
+lsd -A "${ignore_flags[@]}" "$@"

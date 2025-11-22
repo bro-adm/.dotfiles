@@ -1,0 +1,31 @@
+-- ~/.config/nvim/lua/plugins/colorschemes.lua
+return {
+  {
+    "f4z3r/gruvbox-material.nvim",
+    name = "gruvbox-material",
+    lazy = false,       -- load immediately
+    priority = 1000,    -- before UI plugins like lualine
+    config = function()
+      local colors = require("gruvbox-material.colors").get(vim.o.background, "medium")
+
+      require("gruvbox-material").setup({
+        italics = true,
+        contrast = "medium",
+        background = { transparent = false },
+        end,
+      })
+
+      vim.cmd.colorscheme("gruvbox-material")
+
+      -- Configure lualine to use gruvbox-material theme
+      local lualine_theme = require("gruvbox-material.lualine").theme("medium")
+      require("lualine").setup({
+        options = {
+          theme = lualine_theme,
+          section_separators = { left = "", right = "" },
+          component_separators = { left = "", right = "" },
+        },
+      })
+    end,
+  },
+}

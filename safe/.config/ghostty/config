@@ -1,1 +1,10 @@
-theme = Monokai Pro Light Sun
+# theme = Monokai Pro Light Sun
+theme = Vague
+
+keybind = ctrl+tab=text:\x03cd -\x0d
+keybind = ctrl+shift+tab=ignore
+keybind = alt+arrow_left=ignore
+keybind = alt+arrow_right=ignore
+
+keybind = super+k=ignore
+keybind = super+l=clear_screen

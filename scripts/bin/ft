@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Fuzzy search files and contents using ripgrep + fzf + bat + nvim
+
+result=$(
+  fzf --ansi --tmux=75%,70% --border \
+      --prompt="🔍 Search files> " \
+      --phony \
+      --bind "change:reload(rg --no-heading --line-number --color=always --hidden --follow --smart-case {q} | awk -F: '{print \$1\":\"\$2}' || true)" \
+      --delimiter : \
+      --preview 'bat --style=numbers --color=always --highlight-line {2} {1}' \
+      --preview-window=right:50%:wrap \
+      <<< ""
+)
+
+file=$(echo "$result" | cut -d: -f1)
+line=$(echo "$result" | cut -d: -f2)
+
+[[ -n "$file" ]] && nvim "$file" +$line
+

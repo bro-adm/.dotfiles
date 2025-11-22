@@ -1,0 +1,19 @@
+return {
+  "psliwka/termcolors.nvim",
+  lazy = false,  -- load on startup
+  config = function()
+    -- Enable true color in Neovim
+    vim.opt.termguicolors = true
+
+    -- Setup termcolors with Kitty plugin
+    require("termcolors").setup({
+      plugins = {
+        kitty = require("termcolors.plugins.kitty"),
+      },
+      default_plugin = "kitty",
+    })
+
+    -- Automatically apply the generated colorscheme
+    vim.cmd("colorscheme termcolors")
+  end,
+}
