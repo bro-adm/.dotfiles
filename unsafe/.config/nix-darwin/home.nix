@@ -47,24 +47,81 @@
 
       eval "$(${pkgs.oh-my-posh}/bin/oh-my-posh init zsh --config ${config.xdg.configHome}/ohmyposh/config.toml)"
 
-      kubetoggle() {
-        if [[ -n "$SHOW_KUBE_PROMPT" ]]; then
-          unset SHOW_KUBE_PROMPT
-        else
-          export SHOW_KUBE_PROMPT=true
-        fi
-
-	local precmd
+      _omp_redraw-prompt() {
+        local precmd
         for precmd in $precmd_functions; do
-          $precmd
+          "$precmd"
         done
 
-	zle .reset-prompt
+        zle .reset-prompt
       }
 
-      zle -N kubetoggle
+      export POSH_VI_MODE="I"
 
-      bindkey "^[[107;6u" kubetoggle
+      function zvm_after_select_vi_mode() {
+        case $ZVM_MODE in
+        $ZVM_MODE_NORMAL)
+          POSH_VI_MODE="N"
+        ;;
+        $ZVM_MODE_INSERT)
+          POSH_VI_MODE="I"
+        ;;
+        $ZVM_MODE_VISUAL)
+          POSH_VI_MODE="V"
+        ;;
+        $ZVM_MODE_VISUAL_LINE)
+          POSH_VI_MODE="V-L"
+        ;;
+        $ZVM_MODE_REPLACE)
+          POSH_VI_MODE="R"
+        ;;
+        esac
+        _omp_redraw-prompt
+      }
+
+      KEYTIMEOUT=1
+
+      function zvm_after_lazy_keybindings() {
+        # A. Register the widget using the plugin's wrapper
+        # This replaces 'zle -N kubetoggle'
+        zvm_define_widget kubetoggle
+
+        # B. Bind the keys
+        # syntax: zvm_bindkey <keymap> <key> <widget>
+      
+        # Bind for Normal Mode (vicmd)
+        zvm_bindkey vicmd "^[[107;6u" kubetoggle
+
+        # Bind for Insert Mode (viins) 
+        # (So it works while you are typing too)
+        zvm_bindkey viins "^[[107;6u" kubetoggle
+
+        bindkey '^[' vi-cmd-mode
+	
+	# In Normal Mode: Escape -> Insert Mode
+        # zvm_bindkey vicmd '^[' vi-insert
+      
+        # In Visual Mode: Escape -> Insert Mode (Dropping selection)
+        # zvm_bindkey visual '^[' vi-insert
+      }
+
+      function zvm_config() {
+        ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+      }
+
+      bindkey -M vicmd h undefined-key
+      bindkey -M vicmd j undefined-key
+      bindkey -M vicmd k undefined-key
+      bindkey -M vicmd l undefined-key
+
+      kubetoggle_widget() {
+        . kubetoggle
+	_omp_redraw-prompt
+      }
+
+      zle -N kubetoggle_widget
+
+      bindkey "^[[107;6u" kubetoggle_widget
       # ctrl+shift+k on kkp terminal emulators
 
       kcl() {
@@ -72,6 +129,14 @@
       }
 
     '';
+
+    plugins = [
+        {
+          name = "vi-mode";
+          src = pkgs.zsh-vi-mode;
+          file = "share/zsh-vi-mode/zsh-vi-mode.plugin.zsh";
+        }
+    ];
 
     oh-my-zsh = {
       enable = true;
@@ -195,6 +260,10 @@
     FZF_DEFAULT_COMMAND="fd --type f --hidden --follow";
     FZF_DEFAULT_OPTS="--tmux";
     _ZO_FZF_OPTS="--tmux";
+
+    EDITOR = "nvim";
+
+    ZVM_SYSTEM_CLIPBOARD_ENABLED="true";
 
     # KUBE_PS1_BINARY="oc";
 

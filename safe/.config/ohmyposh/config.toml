@@ -21,6 +21,19 @@ final_space = true
   newline = true
 
   [[blocks.segments]]
+    leading_diamond = ''
+    trailing_diamond = ' '
+    template = '{{ if .Env.POSH_VI_MODE }}{{ .Env.POSH_VI_MODE }} {{ end }}'
+    foreground = 'p:grey'
+    background = 'transparent'
+    type = 'text'
+    style = 'plain'
+    foreground_templates = ['{{if contains "N" .Env.POSH_VI_MODE}}p:grey{{end}}', '{{if contains "I" .Env.POSH_VI_MODE}}cyan{{end}}', '{{if contains "V" .Env.POSH_VI_MODE}}white{{end}}', '{{if contains "V-L" .Env.POSH_VI_MODE}}white{{end}}', '{{if contains "R" .Env.POSH_VI_MODE}}yellow{{end}}']
+
+    [blocks.segments.properties]
+      cache_duration = 'none'
+
+  [[blocks.segments]]
     template = '{{ .Path }}'
     foreground = 'blue'
     background = 'transparent'
@@ -45,7 +58,7 @@ final_space = true
       fetch_status = true
 
   [[blocks.segments]]
-    template = '{{ if .Env.SHOW_KUBE_PROMPT }} ⎈ {{.Context}}{{if .Namespace}}::{{.Namespace}}{{end}}{{ end }}'
+    template = '{{ if eq .Env.SHOW_KUBE_PROMPT "true" }} ⎈ {{.Context}}{{if .Namespace}}::{{.Namespace}}{{end}}{{ end }}'
     foreground = 'cyan'
     background = 'transparent'
     type = 'kubectl'
@@ -58,19 +71,19 @@ final_space = true
       parse_kubeconfig = true
 
 [[blocks]]
-  type = 'rprompt'
-  overflow = 'hidden'
+  type = 'prompt'
+  alignment = 'right'
 
   [[blocks.segments]]
-    template = '{{ .FormattedMs }}'
-    foreground = 'yellow'
+    type = "command"
+    style = "plain"
+    foreground = "#ffffff"
     background = 'transparent'
-    type = 'executiontime'
-    style = 'plain'
 
     [blocks.segments.properties]
-      cache_duration = 'none'
-      threshold = 5000
+      shell = "zsh"
+      command = "omp-nix-dev-envs-parser"
+
 
 [[blocks]]
   type = 'prompt'

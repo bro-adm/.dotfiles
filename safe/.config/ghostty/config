@@ -2,7 +2,7 @@
 theme = Vague
 
 keybind = ctrl+tab=text:\x03cd -\x0d
-keybind = ctrl+shift+tab=ignore
+# keybind = ctrl+shift+tab=text:\x03kp -\x0d
 keybind = alt+arrow_left=ignore
 keybind = alt+arrow_right=ignore
 

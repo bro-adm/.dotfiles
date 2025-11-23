@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+case "$1" in
+  on)
+    export SHOW_KUBE_PROMPT=true
+    ;;
+  off)
+    export SHOW_KUBE_PROMPT=false
+    ;;
+  "")
+    # toggle when no argument provided
+    if [[ "$SHOW_KUBE_PROMPT" == "true" ]]; then
+      export SHOW_KUBE_PROMPT=false
+    else
+      export SHOW_KUBE_PROMPT=true
+    fi
+    ;;
+  *)
+    echo "Usage: $0 [on|off]"
+    exit 1
+    ;;
+esac
