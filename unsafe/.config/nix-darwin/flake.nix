@@ -24,16 +24,19 @@
           pkgs.neovim
           pkgs.git
           pkgs.stow
+	  pkgs.nix-tree
+
           pkgs.wezterm
           pkgs.aerospace
   	  pkgs.slack
           pkgs.raycast
+
+	  pkgs.claude-code
+	  pkgs.google-cloud-sdk
           # pkgs.whatsapp-for-mac
           # pkgs.karabiner-elements
         ];
 
-      # Enable alternative shell support in nix-darwin.
-      # programs.fish.enable = true;
 
       # Set Git commit hash for darwin-version.
       system.configurationRevision = self.rev or self.dirtyRev or null;
@@ -47,6 +50,10 @@
       nixpkgs.config.allowUnfree = true;
       
       security.pam.services.sudo_local.touchIdAuth = true;
+
+      environment.shells = [
+      	pkgs.fish
+      ];
     };
   in
   {

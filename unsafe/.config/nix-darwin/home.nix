@@ -128,6 +128,15 @@
 	kubectl config-cleanup --clusters --users --raw > ~/.kube/config.clean && mv ~/.kube/config.clean ~/.kube/config
       }
 
+      if [[ $(ps -p $PPID -o comm=) != "fish" && -z ''${ZSH_EXECUTION_STRING} && ''${SHLVL} == 1 ]]; then
+        if [[ -o login ]]; then
+          LOGIN_OPTION='--login'
+        else
+          LOGIN_OPTION=""
+        fi
+        exec ${pkgs.fish}/bin/fish $LOGIN_OPTION
+      fi
+    
     '';
 
     plugins = [
@@ -148,14 +157,24 @@
 
   };
 
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = ''
+      set fish_greeting # Disable greeting
+      ${pkgs.oh-my-posh}/bin/oh-my-posh init fish --config ${config.xdg.configHome}/ohmyposh/config.toml | source
+    '';
+  };
+
   programs.oh-my-posh = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
   };
 
   programs.direnv = {
     enable = true;
     enableZshIntegration = true; # see note on other shells below
+    # enableFishIntegration = true;
     nix-direnv.enable = true;
   };
 
@@ -174,6 +193,7 @@
     # ignoreDups = true;
   # };
 
+
   # The home.packages option allows you to install Nix packages into your
   # environment.
   home.packages = [
@@ -185,8 +205,10 @@
     pkgs.fzf
     pkgs.ripgrep
     pkgs.fd
+    pkgs.bat
     pkgs.zoxide
     pkgs.tmux
+    pkgs.nushell
 
     pkgs.ghostty-bin
     pkgs.kitty
@@ -267,7 +289,11 @@
 
     # KUBE_PS1_BINARY="oc";
 
-    GOOGLE_CLOUD_PROJECT="itpc-gcp-ai-eng-claude";
+    CLAUDE_CODE_USE_VERTEX="1";
+    CLOUD_ML_REGION="us-east5";
+    ANTHROPIC_VERTEX_PROJECT_ID="itpc-gcp-ai-eng-claude";
+    
+    # GOOGLE_CLOUD_PROJECT="itpc-gcp-ai-eng-claude";
     # EDITOR = "emacs";
   };
 
@@ -282,6 +308,7 @@
   programs.zoxide = {
     enable = true;
     enableZshIntegration = true;
+    enableFishIntegration = true;
   };
 
   # Let Home Manager install and manage itself.

@@ -1,7 +1,22 @@
 STOW = stow -t ~ -v
 STOW_SAFE = $(STOW)
 STOW_UNSAFE = $(STOW) --no-folding
-STOW_SCRIPTS = $(STOW) 
+STOW_SCRIPTS = $(STOW)
+
+.DEFAULT_GOAL := help
+
+.PHONY: help
+help: ## Show this help message
+	@echo "Available targets:"
+	@echo ""
+	@echo "  make stow          - Stow all packages (safe, unsafe, and scripts)"
+	@echo "  make stow-safe     - Stow safe packages"
+	@echo "  make stow-unsafe   - Stow unsafe packages (no-folding)"
+	@echo "  make stow-scripts  - Stow user scripts to ~/bin"
+	@echo "  make unstow        - Remove all stowed packages"
+	@echo "  make adopt         - Adopt existing local files into dotfiles"
+	@echo "  make help          - Show this help message"
+	@echo ""
 
 # Default: stow everything
 stow: stow-unsafe stow-safe stow-scripts
