@@ -1,0 +1,15 @@
+ctrl_n_shortcuts = true
+enter_accept = true
+history_filter = [
+    "^cd($| )",
+    "^z($| )",
+    "^zi($| )",
+    "^ff",
+    "^fe",
+    "^lst($| )",
+]
+workspaces = true
+[search]
+filters = [ "global", "session", "workspace", "directory" ]
+[shell_up_key_binding]
+filters = [ "workspace", "directory" ]

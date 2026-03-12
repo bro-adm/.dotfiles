@@ -45,6 +45,20 @@ final_space = true
       style = 'full'
 
   [[blocks.segments]]
+    type = 'jujutsu'
+    style = 'plain'
+    foreground = 'p:grey'
+    template = ' {{ .ChangeID }} '
+
+    [blocks.segments.properties]
+      cache_duration = '10s'
+    
+    [blocks.segments.options]
+      fetch_status = true         # CRITICAL: This triggers setJujutsuStatus()
+      change_id_min_len = 7       # CRITICAL: This stops jj from just returning "@"
+      ignore_working_copy = false
+
+  [[blocks.segments]]
     template = ' {{ .HEAD }}{{ if or (.Working.Changed) (.Staging.Changed) }}*{{ end }} <cyan>{{ if gt .Behind 0 }}⇣{{ end }}{{ if gt .Ahead 0 }}⇡{{ end }}</>'
     foreground = 'p:grey'
     background = 'transparent'

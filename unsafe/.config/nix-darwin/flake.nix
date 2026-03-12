@@ -22,18 +22,25 @@
       environment.systemPackages =
         [ 
           pkgs.neovim
+          pkgs.neovim-remote
           pkgs.git
+          pkgs.jujutsu
           pkgs.stow
-	  pkgs.nix-tree
+          pkgs.htop
+          pkgs.nix-tree
+          pkgs.mise
 
           pkgs.wezterm
           pkgs.aerospace
-  	  pkgs.slack
+          pkgs.slack
           pkgs.raycast
 
-	  pkgs.claude-code
-	  pkgs.google-cloud-sdk
-          # pkgs.whatsapp-for-mac
+          pkgs.claude-code
+          pkgs.google-cloud-sdk
+          pkgs.awscli2
+          pkgs.rosa
+          
+	  # pkgs.whatsapp-for-mac
           # pkgs.karabiner-elements
         ];
 

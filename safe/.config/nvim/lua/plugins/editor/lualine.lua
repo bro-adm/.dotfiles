@@ -13,7 +13,7 @@ return {
         disabled_filetypes = { statusline = {}, winbar = {} },
 	always_show_tabline = false,
         always_divide_middle = true,
-        globalstatus = true,
+        globalstatus = false,
       },
       sections = {
         lualine_a = { 'mode' },
@@ -24,7 +24,7 @@ return {
         lualine_z = { 'location' },
       },
       inactive_sections = {
-        lualine_c = { 'filename' },
+        lualine_c = { { 'filename', path = 1 } },
         lualine_x = { 'location' },
       },
       extensions = { 'quickfix', 'fzf', 'lazy' },

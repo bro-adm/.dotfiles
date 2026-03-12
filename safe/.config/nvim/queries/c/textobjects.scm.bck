@@ -1,0 +1,71 @@
+(function_definition
+  body: (compound_statement)) @function.outer
+
+(declaration
+  (function_declarator)) @function.outer
+
+(function_definition
+  body: (compound_statement
+    .
+    "{"
+    _+ @function.inner
+    "}"))
+
+(struct_specifier
+  body: (_) @class.inner) @class.outer
+
+(enum_specifier
+  body: (_) @class.inner) @class.outer
+
+(call_expression) @call.outer
+
+(call_expression
+  arguments: (argument_list
+    .
+    "("
+    _+ @call.inner
+    ")"))
+
+(if_statement) @conditional.outer
+
+(if_statement
+  consequence: (compound_statement
+    .
+    "{"
+    _+ @conditional.inner
+    "}")) @conditional.outer
+
+(if_statement
+  alternative: (else_clause
+    (compound_statement
+      .
+      "{"
+      _+ @conditional.inner
+      "}"))) @conditional.outer
+
+(for_statement) @loop.outer
+
+(for_statement
+  body: (compound_statement
+    .
+    "{"
+    _+ @loop.inner
+    "}")) @loop.outer
+
+(while_statement) @loop.outer
+
+(while_statement
+  body: (compound_statement
+    .
+    "{"
+    _+ @loop.inner
+    "}")) @loop.outer
+
+(do_statement) @loop.outer
+
+(do_statement
+  body: (compound_statement
+    .
+    "{"
+    _+ @loop.inner
+    "}")) @loop.outer

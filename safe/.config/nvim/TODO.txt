@@ -1,0 +1,2 @@
+fix nvim mini ai (around inside) to allow ii (internal indent) - https://nvim-mini.org/mini.nvim/doc/mini-ai.html
+

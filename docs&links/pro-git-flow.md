@@ -25,7 +25,13 @@ cd personal
 touch .envrc flake.nix # Add your private files here
 git add .
 git commit -m "CONFIG: Add personal dev environment"
+git branch personal
+git switch personal
 git push -u origin personal
+
+gh repo edit bro-adm/kserve --default-branch personal
+# delete the copied master/main /wahtever branch from origin
+git push origin --delete master
 ```
 
 ## 2. Daily Workflow
@@ -35,7 +41,7 @@ Create new worktrees from `personal`
 # From the root 'my-project' folder:
 
 # 1. Create a new folder 'feat-login' based on 'personal'
-git worktree add feat-login personal
+git worktree add -b <branch> feat-login personal
 
 # 2. Move into that folder to work
 cd feat-login

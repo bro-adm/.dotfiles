@@ -3,3 +3,39 @@
 	email = lielbondy@gmail.com
 [pager]
 	branch = false
+[core]
+	excludesfile = /Users/lbondy/.config/git/ignore
+	pager = diff-so-fancy | less --tabs=4 -RF
+	fsmonitor = true
+	useBuiltinFSMonitor = true
+[rebase]
+	updateRefs = true
+[interactive]
+	diffFilter = diff-so-fancy --patch
+[color]
+	ui = true
+[color "diff-highlight"]
+	oldNormal = red bold
+	oldHighlight = red bold 52
+	newNormal = green bold
+	newHighlight = green bold 22
+[color "diff"]
+	meta = 11
+	frag = magenta bold
+	commit = yellow bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
+[diff]
+	external = difft
+
+; git diff auto uses the ext diff (can be turned off via --no-ext-diff)
+; git log doent use ext diff with -p by default -> reuqires addional --ext-diff otherwise usaes diff so fancy pager (replaces hideous git patch diff)
+[alias]
+	stack = "!f() {     choose=false;     branch_name='';     for arg in \"$@\"; do         if [ \"$arg\" = \"-c\" ]; then choose=true;         else branch_name=\"$arg\"; fi;     done;     if [ \"$choose\" = true ]; then         parent=$(git branch --format='%(refname:short)' | fzf --height 40% --header 'Stack on top of...');     else         parent=\"$(git rev-parse --abbrev-ref HEAD)\";     fi;     [ -z \"$parent\" ] || [ -z \"$branch_name\" ] && { echo 'Usage: git stack [-c] <branch-name>'; exit 1; };     echo \"Creating $branch_name tracking $parent...\";     git checkout -b \"$branch_name\" --track \"$parent\"; }; f"
+	fbr = !git branch --format='%(refname:short)' | fzf --height 40% --border --header 'Select Branch'
+	reparent = "!f() {     if [ \"$1\" = \"-c\" ]; then         target=$(git branch --format='%(refname:short)' | fzf --height 40% --header 'Reparent onto...');     else         target=\"${1:-$(git rev-parse --abbrev-ref @{-1})}\";     fi;     [ -z \"$target\" ] && exit 0;     old_base=$(git rev-parse --abbrev-ref @{u});     echo \"Transplanting current slice from $old_base to $target...\";     git rebase --onto \"$target\" \"$old_base\" && git branch -u \"$target\"; }; f"
+[push]
+	default = current
+[remote]
+	pushDefault = origin

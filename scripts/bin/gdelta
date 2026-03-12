@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# 1. Discover the config path dynamically
+# We use git rev-parse because ftdv likely stripped your $GIT_DIR
+CONFIG_PATH=$(git rev-parse --show-toplevel 2>/dev/null)/.gitconfig
+
+# 2. Execute delta with the config and pass all arguments ($@)
+# We also force the theme variables just in case
+export BAT_THEME="Nord"
+export COLORTERM="truecolor"
+
+if [ -f "$CONFIG_PATH" ]; then
+    exec delta --config "$CONFIG_PATH" "$@"
+else
+    # Fallback if no local .gitconfig exists
+    exec delta "$@"
+fi

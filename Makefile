@@ -38,6 +38,10 @@ stow-scripts:
 	# Make all stowed scripts executable
 	@find scripts/bin -type f -exec chmod +x {} \;
 
+extra-links:
+	@echo "⚙️ linking extras (.envrc, ...)"
+	ln -s $(PWD)/.envrc $(XDG_CONFIG_HOME)/.envrc
+
 unstow:
 	@echo "🧹 Unstowing all packages..."
 	$(STOW_UNSAFE) -D unsafe

@@ -124,10 +124,6 @@
       bindkey "^[[107;6u" kubetoggle_widget
       # ctrl+shift+k on kkp terminal emulators
 
-      kcl() {
-	kubectl config-cleanup --clusters --users --raw > ~/.kube/config.clean && mv ~/.kube/config.clean ~/.kube/config
-      }
-
       if [[ $(ps -p $PPID -o comm=) != "fish" && -z ''${ZSH_EXECUTION_STRING} && ''${SHLVL} == 1 ]]; then
         if [[ -o login ]]; then
           LOGIN_OPTION='--login'
@@ -160,9 +156,48 @@
   programs.fish = {
     enable = true;
     interactiveShellInit = ''
-      set fish_greeting # Disable greeting
-      ${pkgs.oh-my-posh}/bin/oh-my-posh init fish --config ${config.xdg.configHome}/ohmyposh/config.toml | source
+        set fish_greeting # Disable greeting
+        ${pkgs.oh-my-posh}/bin/oh-my-posh init fish --config ${config.xdg.configHome}/ohmyposh/config.toml | source
+
+        function _omp_redraw_prompt --on-variable PWD
+            # Fish doesn't need a for-loop for precmds; it handles them via events.
+            # We call the internal OMP repaint and then the shell repaint.
+            if functions -q omp_repaint_prompt
+                omp_repaint_prompt
+            end
+            commandline -f repaint
+        end
+
+        # The "Browser MRU Toggle" logic
+        function _toggle_last_dir
+          # cd - is the fastest way to swap between the two most recent
+          cd - 
+          # Trigger your OMP redraw function we created earlier
+          if functions -q _omp_redraw_prompt
+              _omp_redraw_prompt
+          end
+        end
+
+        # Bind Ctrl+Tab (Check fish_key_reader if this code differs for you)
+        # Standard for many KKP terminals is \e[1;5I
+        bind ctrl-tab _toggle_last_dir
+
+        # 3. Your Keybinds
+        bind ctrl-shift-']' nextd
+        bind ctrl-shift-'[' prevd
+
+        source ${pkgs.fishPlugins.forgit}/share/fish/vendor_conf.d/forgit.plugin.fish
     '';
+    plugins = [
+    {
+        name = "forgit";
+        src = pkgs.fishPlugins.forgit.src;
+    }
+    ];
+    shellAbbrs = {
+	jime = "jira issue list -a$(jira me)";
+	jistat = ''jira issue list -q "project='RHAISTRAT' AND component in ('Model as a Service')"'';
+    };
   };
 
   programs.oh-my-posh = {
@@ -171,11 +206,33 @@
     enableFishIntegration = true;
   };
 
-  programs.direnv = {
+  # programs.direnv = {
+  #   enable = true;
+  #   enableZshIntegration = true; # see note on other shells below
+  #   # enableFishIntegration = true;
+  #   nix-direnv.enable = true;
+  # };
+
+  programs.mise = {
     enable = true;
-    enableZshIntegration = true; # see note on other shells below
-    # enableFishIntegration = true;
-    nix-direnv.enable = true;
+    enableZshIntegration = true;
+    enableFishIntegration = true;
+    globalConfig = {
+    #   plugins = {
+    #     nix = "https://github.com/jbadeau/mise-nix.git";
+    #   };
+      settings = {
+        experimental = true;
+      };
+    };
+    # settings = {
+    #   experimental = true;
+    # };
+  };
+
+  programs.atuin = {
+    enable = true;
+    # flags = [ "--disable-up-arrow" ];
   };
 
 
@@ -201,14 +258,24 @@
     # # "Hello, world!" when run.
     pkgs.hello
     pkgs.gnumake
-    pkgs.lsd
-    pkgs.fzf
-    pkgs.ripgrep
-    pkgs.fd
-    pkgs.bat
-    pkgs.zoxide
+    pkgs.yq
+    pkgs.lsd # file tree view
+    pkgs.broot # file tree operations + preview
+    pkgs.fzf # fuzzy find
+    pkgs.ripgrep # grep replacment
+    pkgs.fd # find replacement
+    pkgs.bat # cat replacment
+    pkgs.zoxide # smart cd + fzf
+    pkgs.sad # replace + fzf + picker
+    
+    pkgs.difftastic # smart diff - code based instead of line based - fuck delta
+    pkgs.diff-so-fancy # diff pager
+    pkgs.watchexec
+    pkgs.lazygit
+    pkgs.graphite-cli
+    
+    pkgs.devbox
     pkgs.tmux
-    pkgs.nushell
 
     pkgs.ghostty-bin
     pkgs.kitty
@@ -222,8 +289,9 @@
     pkgs.openshift
     pkgs.kubectl
     pkgs.kubevirt
-    pkgs.kubectx
+    pkgs.kubectx # fzf cluster + namespace picker
     pkgs.krew
+    pkgs.k9s
 
     (pkgs.wrapHelm pkgs.kubernetes-helm {
       plugins = with pkgs.kubernetes-helmPlugins; [
@@ -233,6 +301,13 @@
       ];
     })
     pkgs.helmfile
+
+    pkgs.jira-cli-go
+    pkgs.neomutt
+    pkgs.gh
+    pkgs.gh-dash
+
+    pkgs.azure-cli
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -277,11 +352,17 @@
   #
   # if you don't want to manage your shell through Home Manager.
   home.sessionVariables = {
+
+    MAKEFILES="$(echo ~/.dotfiles/scripts/makefiles/*.mk)";
     ZDOTDIR = "${config.home.homeDirectory}/.config/zsh";
     
-    FZF_DEFAULT_COMMAND="fd --type f --hidden --follow";
+    FZF_DEFAULT_COMMAND="fd --type f --follow";
     FZF_DEFAULT_OPTS="--tmux";
     _ZO_FZF_OPTS="--tmux";
+
+    FORGIT_FZF_DEFAULT_OPTS="--height 100% --layout reverse --border=none";
+    FORGIT_LOG_FZF_OPTS="--preview 'git difftool --no-prompt --ext-diff {}^!'";
+    FORGIT_DIFF_TOOL="difft --color always";
 
     EDITOR = "nvim";
 
@@ -289,18 +370,14 @@
 
     # KUBE_PS1_BINARY="oc";
 
-    CLAUDE_CODE_USE_VERTEX="1";
-    CLOUD_ML_REGION="us-east5";
-    ANTHROPIC_VERTEX_PROJECT_ID="itpc-gcp-ai-eng-claude";
-    
-    # GOOGLE_CLOUD_PROJECT="itpc-gcp-ai-eng-claude";
-    # EDITOR = "emacs";
+
   };
 
   home.shellAliases = {
     p = "podman";
     kc = "kubectx";
     kp = "kubens";
+    kcl = "kubectl config-cleanup --clusters --users --raw > ~/.kube/config.clean && mv ~/.kube/config.clean ~/.kube/config";
   };
 
   home.sessionPath = [ "$HOME/bin" "$HOME/.krew/bin" ];
