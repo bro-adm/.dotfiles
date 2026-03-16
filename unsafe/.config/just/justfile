@@ -1,0 +1,106 @@
+# --- Configuration Variables Read from Environment ---
+quay_server := env_var_or_default("QUAY_SERVER", "quay.io")
+quay_username := env_var_or_default("QUAY_USERNAME", "")
+quay_password := env_var_or_default("QUAY_PASSWORD", "")
+
+# --- Internal Variables ---
+global_secret_name := "pull-secret"
+global_secret_ns := "openshift-config"
+temp_config := "/tmp/quay_config.json"
+
+sa_name := env_var_or_default("SA_NAME", "my-quay-sa")
+secret_name := env_var_or_default("SECRET_NAME", "quayme")
+auth_json_path := env_var_or_default("AUTH_JSON_PATH", env_var("HOME") + "/.config/containers/auth.json")
+
+# Default target when you just run `just`
+default:
+    @just -f {{justfile()}} --list
+
+# --- Environment Variable Check (Private Recipe) ---
+_quay-check_envs:
+    #!/usr/bin/env bash
+    set -e
+    if [ -z "{{quay_username}}" ]; then
+        echo "❌ Error: QUAY_USERNAME must be set."
+        echo "Example: QUAY_USERNAME=your_user just quay-add-private-repo-cluster-wide"
+        exit 1
+    fi
+    if [ -z "{{quay_password}}" ]; then
+        echo "❌ Error: QUAY_PASSWORD must be set."
+        exit 1
+    fi
+
+# --- Recipes ---
+
+[doc("Add private repo to cluster-wide pull secret")]
+quay-add-private-repo-cluster-wide: _quay-check_envs
+    @echo "--- 🔑 Configuring Global Pull Secret ---"
+    @echo ">>> 1. Downloading existing {{global_secret_name}}..."
+    @# Swapped Go template for jsonpath to avoid Just bracket collision
+    oc get secret {{global_secret_name}} -n {{global_secret_ns}} \
+        -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode > {{temp_config}}
+
+    @echo ">>> 2. Adding credentials for {{quay_server}} to local config file..."
+    oc registry login \
+        --registry='{{quay_server}}' \
+        --auth-basic='{{quay_username}}:{{quay_password}}' \
+        --to={{temp_config}}
+
+    @echo ">>> 3. Updating the cluster-wide {{global_secret_name}} in {{global_secret_ns}}..."
+    oc set data secret/{{global_secret_name}} -n {{global_secret_ns}} \
+        --from-file=.dockerconfigjson={{temp_config}}
+
+    @echo ">>> 4. Cleaning up temporary file..."
+    rm {{temp_config}}
+    @echo "✅ Cluster-wide config complete. Nodes can now pull from {{quay_server}}."
+
+[doc("Create a custom service account with private registry access")]
+quay-link-namespaced-sa:
+    @echo "--- 🔐 Creating Service Account with Private Registry Access ---"
+    @echo ">>> 1. Creating secret {{secret_name}} from {{auth_json_path}}..."
+    oc create secret generic {{secret_name}} \
+        --from-file=.dockerconfigjson={{auth_json_path}} \
+        --type=kubernetes.io/dockerconfigjson
+
+    @echo ">>> 2. Creating service account {{sa_name}}..."
+    oc create sa {{sa_name}}
+
+    @echo ">>> 3. Linking secret to service account for image pulls..."
+    oc secrets link {{sa_name}} {{secret_name}} --for=pull
+    @echo "✅ Service account {{sa_name}} created and linked to {{secret_name}}."
+
+[doc("Login to podman using credentials from cluster's global pull secret")]
+quay-podman-login-from-cluster:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "--- 🐳 Logging into Podman using Cluster Credentials ---"
+    
+    echo ">>> 1. Extracting auth string from cluster secret..."
+    AUTH_STRING=$(oc get secret {{global_secret_name}} -n {{global_secret_ns}} -o jsonpath='{.data.\.dockerconfigjson}' | base64 --decode | jq -r '.auths."{{quay_server}}".auth')
+    
+    echo ">>> 2. Decoding credentials..."
+    USER_TOKEN=$(echo "$AUTH_STRING" | base64 --decode)
+    EXTRACTED_USERNAME=$(echo "$USER_TOKEN" | cut -d ':' -f 1)
+    EXTRACTED_TOKEN=$(echo "$USER_TOKEN" | cut -d ':' -f 2-)
+    
+    echo "Extracted Username: $EXTRACTED_USERNAME"
+    echo "Extracted Token (first 5 chars): ${EXTRACTED_TOKEN:0:5}..."
+    
+    echo ">>> 3. Logging into podman..."
+    podman login {{quay_server}} -u "$EXTRACTED_USERNAME" -p "$EXTRACTED_TOKEN"
+    echo "✅ Podman login successful. You can now pull images from {{quay_server}}."
+
+[doc("Print the manual help menu")]
+quay-help:
+    @echo "OpenShift Quay Registry Configuration Tool"
+    @echo "=========================================="
+    @echo ""
+    @echo "Run 'just --list' to see automatically generated targets."
+    @echo ""
+    @echo "## Variables (Override via ENV or CLI):"
+    @echo "   QUAY_SERVER      : Registry URL. Default: {{quay_server}}"
+    @echo "   QUAY_USERNAME    : Your Quay username (for cluster-add-private-repo)"
+    @echo "   QUAY_PASSWORD    : Your Quay password (for cluster-add-private-repo)"
+    @echo "   SA_NAME          : Service account name. Default: {{sa_name}}"
+    @echo "   SECRET_NAME      : Secret name. Default: {{secret_name}}"
+    @echo "   AUTH_JSON_PATH   : Path to auth.json. Default: {{auth_json_path}}"

@@ -187,6 +187,53 @@
         bind ctrl-shift-'[' prevd
 
         source ${pkgs.fishPlugins.forgit}/share/fish/vendor_conf.d/forgit.plugin.fish
+
+	# worktrunk shell integration for fish
+	#
+	# This is the full function definition, output by `wt config shell init fish`.
+	# It's sourced at runtime by the wrapper in ~/.config/fish/functions/wt.fish.
+
+	# Override wt command with file-based directive passing.
+	# Creates a temp file, passes path via WORKTRUNK_DIRECTIVE_FILE, evals it after.
+	# WORKTRUNK_BIN can override the binary path (for testing dev builds).
+	#
+	# Note: We use `eval (cat ... | string collect)` instead of `source` because:
+	# 1. fish's `source` doesn't propagate exit codes to the parent function
+	# 2. `eval (cat ...)` without `string collect` splits on newlines, breaking multiline directives
+	# With `string collect`, we get proper exit code propagation for cd and other directives.
+	function wt
+	    set -l use_source false
+	    set -l args
+
+	    for arg in $argv
+		if test "$arg" = "--source"; set use_source true; else; set -a args $arg; end
+	    end
+
+	    test -n "$WORKTRUNK_BIN"; or set -l WORKTRUNK_BIN (type -P wt 2>/dev/null)
+	    if test -z "$WORKTRUNK_BIN"
+		echo "wt: command not found" >&2
+		return 127
+	    end
+	    set -l directive_file (mktemp)
+
+	    # --source: use cargo run (builds from source)
+	    if test $use_source = true
+		env WORKTRUNK_DIRECTIVE_FILE=$directive_file cargo run --bin wt --quiet -- $args
+	    else
+		env WORKTRUNK_DIRECTIVE_FILE=$directive_file $WORKTRUNK_BIN $args
+	    end
+	    set -l exit_code $status
+
+	    if test -s "$directive_file"
+		eval (cat "$directive_file" | string collect)
+		if test $exit_code -eq 0
+		    set exit_code $status
+		end
+	    end
+
+	    rm -f "$directive_file"
+	    return $exit_code
+	end
     '';
     plugins = [
     {
@@ -222,6 +269,7 @@
     #     nix = "https://github.com/jbadeau/mise-nix.git";
     #   };
       settings = {
+        auto_install = true;
         experimental = true;
       };
     };
@@ -267,6 +315,7 @@
     pkgs.bat # cat replacment
     pkgs.zoxide # smart cd + fzf
     pkgs.sad # replace + fzf + picker
+    pkgs.just # replace phony makefiles
     
     pkgs.difftastic # smart diff - code based instead of line based - fuck delta
     pkgs.diff-so-fancy # diff pager
@@ -369,7 +418,6 @@
     ZVM_SYSTEM_CLIPBOARD_ENABLED="true";
 
     # KUBE_PS1_BINARY="oc";
-
 
   };
 

@@ -1,0 +1,57 @@
+#:schema https://jj-vcs.github.io/jj/latest/config-schema.json
+
+[user]
+name = "bro-adm"
+email = "lielbondy@gmail.com"
+
+[merge-tools.nvim-2pane]
+program = "nvim"
+edit-args = [
+    "-c", "Oil $left", 
+    "-c", "botright vsplit", 
+    "-c", "Oil $right"
+]
+
+[merge-tools.nvim-3pane]
+program = "nvim"
+edit-args = [
+    "-c", "Oil $left", 
+    "-c", "botright vsplit", 
+    "-c", "Oil $output", 
+    "-c", "botright vsplit", 
+    "-c", "Oil $right",
+    # Move the cursor back one split to land in the middle ($output)
+    "-c", "wincmd h" 
+]
+
+[merge-tools.difft]
+# program = "difft" (Optional if named 'difft')
+diff-args = ["--color=always", "--background=dark", "--display=side-by-side", "$left", "$right"]
+diff-invocation-mode = "file-by-file"
+
+[ui]
+diff-editor = "nvim-2pane"
+# diff-editor = ":builtin"
+
+[[--scope]]
+--when.commands = ["diff"]
+
+[--scope.ui]
+diff-formatter = "difft"
+
+[[--scope]]
+--when.commands = ["log"]
+--when.args = ["-p", "--patch"]
+[--scope.ui]
+diff-formatter = "difft"
+
+[templates]
+log = 'builtin_log_compact ++ "\n" ++ description.remove_prefix(description.first_line()).trim_start() ++ "\n"'
+
+[revset-aliases]
+# The bookmark immediately below your current working copy
+"b_prev" = "heads(::@ ~ @ & bookmarks())"
+
+# The entire stack from your base bookmark up to your working copy
+"b_stack" = "heads(::@ ~ @ & bookmarks())+::@"
+

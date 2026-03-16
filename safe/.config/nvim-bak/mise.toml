@@ -1,0 +1,7 @@
+[tools]
+# We use the nix prefix to tap into the nixpkgs collection
+"nix:luajitPackages.fennel" = "1.6.1-1"
+
+# [env]
+# This ensures Fennel can find its own modules if you expand later
+# FENNEL_PATH = "./?.fnl;./src/?.fnl"
