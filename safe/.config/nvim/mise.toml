@@ -1,7 +1,12 @@
 [tools]
 # We use the nix prefix to tap into the nixpkgs collection
 "nix:luajitPackages.fennel" = "1.6.1-1"
+"nix:fnlfmt" = "latest"
+"nix:fennel-ls" = "latest"
 
-# [env]
-# This ensures Fennel can find its own modules if you expand later
-# FENNEL_PATH = "./?.fnl;./src/?.fnl"
+[tasks.setup-lsp]
+description = "Download the Neovim docset for fennel-ls"
+run = """
+mkdir -p ~/.local/share/fennel-ls/docsets
+curl -fL -o ~/.local/share/fennel-ls/docsets/nvim.lua https://git.sr.ht/~micampe/fennel-ls-nvim-docs/blob/main/nvim.lua
+"""

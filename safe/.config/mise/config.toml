@@ -1,0 +1,7 @@
+[settings]
+auto_install = true
+experimental = true
+
+[tools]
+tree-sitter = "latest"
+# "nix:nyxt" = "latest"
